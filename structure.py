@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 
 class Blockchain:
 
-    def _init_(self):
+    def __init__(self):
         self.current_transactions = []
         self.chain = []
         self.nodes = set()
@@ -136,7 +136,7 @@ class Blockchain:
         return False
 
 # Instantiate the Node
-app = Flask(_name_)
+app = Flask(__name__)
 
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
@@ -225,7 +225,7 @@ def consensus():
 
     return jsonify(response), 200
 
-if _name_ == '_main_':
+if __name__ == '__main__':
    from argparse import ArgumentParser
 
    parser = ArgumentParser()
