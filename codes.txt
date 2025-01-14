@@ -1,0 +1,68 @@
+REQUISIÇÕES POSTMAN:
+
+GET http://127.0.0.1:5000/mine
+
+POST http://127.0.0.1:5000/transactions/new
+
+raw json
+{
+    "sender": "Alice",
+    "recipient": "Bob",
+    "amount": 10
+}
+
+GET http://127.0.0.1:5000/chain
+
+POST http://127.0.0.1:5000/nodes/register
+
+raw json
+{
+  "nodes": [
+    "http://127.0.0.1:5001",
+    "http://127.0.0.1:5002"
+  ]
+}
+
+GET http://127.0.0.1:5000/nodes/resolve
+
+python3 structure.py
+python3 structure.py -p 5001 
+python3 structure.py -p 5002
+
+POSTS ------------------------------------------------
+
+POST http://127.0.0.1:5000/nodes/register
+
+raw json
+{
+  "nodes": [
+    "http://127.0.0.1:5001",
+    "http://127.0.0.1:5002"
+  ]
+}
+
+pro 2º é
+
+POST http://127.0.0.1:5001/nodes/register
+
+raw json
+{
+  "nodes": [
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:5002"
+  ]
+}
+
+e pro 3º é
+
+POST http://127.0.0.1:5002/nodes/register
+
+raw json
+{
+  "nodes": [
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:5001"
+  ]
+}
+
+------------------------------------------------------
