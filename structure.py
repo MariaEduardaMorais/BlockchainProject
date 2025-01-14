@@ -18,10 +18,6 @@ class Blockchain:
     def new_block(self, proof, previous_hash=None):
         """
         Create a new Block in the Blockchain
-
-        :param proof: The proof given by the Proof of Work algorithm
-        :param previous_hash: Hash of previous Block
-        :return: New Block
         """
         block = {
             'index': len(self.chain) + 1,
@@ -40,11 +36,6 @@ class Blockchain:
     def new_transaction(self, sender, recipient, amount):
         """
         Creates a new transaction to go into the next mined Block
-
-        :param sender: Address of the Sender
-        :param recipient: Address of the Recipient
-        :param amount: Amount
-        :return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
             'sender': sender,
@@ -58,8 +49,6 @@ class Blockchain:
     def hash(block):
         """
         Creates a SHA-256 hash of a Block
-
-        :param block: Block
         """
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
@@ -73,12 +62,7 @@ class Blockchain:
 
     def proof_of_work(self, last_proof):
         """
-        Simple Proof of Work Algorithm:
-        - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-        - p is the previous proof, and p' is the new proof
-
-        :param last_proof: <int>
-        :return: <int>
+        Simple Proof of Work Algorithm
         """
         proof = 0
         while not self.valid_proof(last_proof, proof):
@@ -90,10 +74,6 @@ class Blockchain:
     def valid_proof(last_proof, proof):
         """
         Validates the Proof
-
-        :param last_proof: <int> Previous Proof
-        :param proof: <int> Current Proof
-        :return: <bool> True if correct, False if not.
         """
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
@@ -102,18 +82,13 @@ class Blockchain:
     def valid_chain(self, chain):
         """
         Determine if a given blockchain is valid
-
-        :param chain: <list> A blockchain
-        :return: <bool> True if valid, False if not
         """
         last_block = chain[0]
         current_index = 1
 
         while current_index < len(chain):
             block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
+
             # Check that the hash of the block is correct
             if block['previous_hash'] != self.hash(last_block):
                 return False
@@ -129,10 +104,7 @@ class Blockchain:
 
     def resolve_conflicts(self):
         """
-        This is our consensus algorithm, it resolves conflicts
-        by replacing our chain with the longest one in the network.
-
-        :return: <bool> True if our chain was replaced, False if not
+        Consensus algorithm to resolve conflicts
         """
         neighbours = self.nodes
         new_chain = None
@@ -140,23 +112,23 @@ class Blockchain:
         # We're only looking for chains longer than ours
         max_length = len(self.chain)
 
-        # Grab and verify the chains from all the nodes in our network
         for node in neighbours:
+            url = f"{node}/chain"
             try:
-                response = requests.get(f'{node}/chain', timeout=5)
+                print(f"Fetching chain from: {url}")
+                response = requests.get(url, timeout=5)
+
                 if response.status_code == 200:
                     length = response.json().get('length')
                     chain = response.json().get('chain')
 
-                    # Check if the length is longer and the chain is valid
                     if length and chain and length > max_length and self.valid_chain(chain):
                         max_length = length
                         new_chain = chain
             except (requests.exceptions.RequestException, KeyError) as e:
-                print(f"Failed to fetch or process chain from node {node}: {str(e)}")
+                print(f"Failed to fetch or process chain from node {node}: {e}")
                 continue
 
-        # Replace our chain if we discovered a new, valid chain longer than ours
         if new_chain:
             self.chain = new_chain
             return True
@@ -174,19 +146,15 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    # We run the proof of work algorithm to get the next proof...
     last_block = blockchain.last_block
     proof = blockchain.proof_of_work(last_block['proof'])
 
-    # We must receive a reward for finding the proof.
-    # The sender is "0" to signify that this node has mined a new coin.
     blockchain.new_transaction(
         sender="0",
         recipient=node_identifier,
         amount=1,
     )
 
-    # Forge the new Block by adding it to the chain
     previous_hash = blockchain.hash(last_block)
     block = blockchain.new_block(proof, previous_hash)
 
@@ -202,13 +170,11 @@ def mine():
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
-
-    # Check that the required fields are in the POST'ed data
     required = ['sender', 'recipient', 'amount']
+
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    # Create a new Transaction
     index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
 
     response = {'message': f'Transaction will be added to Block {index}'}
@@ -231,7 +197,6 @@ def register_nodes():
         return "Error: Please supply a valid list of nodes", 400
 
     for node in nodes:
-        # Normalize the node URL by removing trailing slashes and ensuring no duplicate 'http://'
         normalized_node = node.strip().rstrip('/')
         if not normalized_node.startswith('http://') and not normalized_node.startswith('https://'):
             normalized_node = f'http://{normalized_node}'
@@ -261,4 +226,11 @@ def consensus():
     return jsonify(response), 200
 
 if _name_ == '_main_':
-    app.run(host='0.0.0.0', port=5000)
+   from argparse import ArgumentParser
+
+   parser = ArgumentParser()
+   parser.add_argument('-p', '--port', default = 5000, type = int, help = 'port to listen on')
+   args = parser.parse_args()
+   port = args.port
+
+   app.run(host = '0.0.0.0', port = port)
