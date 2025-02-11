@@ -123,7 +123,7 @@ def mine():
     previous_hash = blockchain.hash(last_block)
     block = blockchain.new_block(proof, previous_hash)
 
-    blockchain.sync_blockchain()  # Automatically synchronize after mining
+    blockchain.sync_blockchain()  # Automatically synchronize and resolve conflicts after mining
 
     response = {
         'message': "New Block Forged",
@@ -227,7 +227,6 @@ def start_gui():
     tk.Button(root, text="Create Transaction", command=create_transaction).grid(row=3, column=0, pady=10, padx=10)
     tk.Button(root, text="Mine Block", command=mine_block).grid(row=3, column=1, pady=10, padx=10)
     tk.Button(root, text="View Chain", command=view_chain).grid(row=4, column=0, pady=10, padx=10)
-    tk.Button(root, text="Resolve Chain", command=resolve_chain).grid(row=4, column=1, pady=10, padx=10)
 
     root.mainloop()
 
