@@ -1,4 +1,3 @@
-import hashlib
 import json
 import requests
 from time import time
@@ -7,6 +6,7 @@ from flask import Flask, jsonify, request
 from threading import Thread
 import tkinter as tk
 from tkinter import messagebox
+import hashlib
 
 class Blockchain:
 
